@@ -1,0 +1,39 @@
+# 🧠 Python & FastAPI
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+.env
+*.sqlite3
+*.log
+
+# 🧪 Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# 🧠 VS Code
+.vscode/
+
+# 🔐 API klíče, konfigurace
+*.env
+secrets.json
+
+# 🌍 Node/Web/Frontend (pokud bys použil npm později)
+node_modules/
+dist/
+build/
+
+# 📦 PyInstaller / builds
+*.spec
+
+# 🗑️ OS věci
+.DS_Store
+Thumbs.db
+
+# 🚫 Backup soubory
+*.bak
+*.swp
+*~
