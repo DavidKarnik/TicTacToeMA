@@ -3,7 +3,7 @@ Setup:
 python -m venv venv
 2. Start virtual env
 .\\venv\\Scripts\\activate
-1. or 3. Instal requirements (to the virtual env if it is activated)
+3. or 1. Instal requirements (to the virtual env if it is activated)
 pip install -r requirements.txt
 
 
