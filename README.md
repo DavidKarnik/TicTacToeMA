@@ -22,5 +22,5 @@ start backend:
 
 1. uvicorn backend.main:app --reload
 
-(v adresáři projektu, nemusí být v ./backend/)
+- v adresáři projektu, nemusí být v ./backend/
 
