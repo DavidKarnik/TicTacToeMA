@@ -1,4 +1,4 @@
-Setup:
+### Setup:
 1. Declare virtual env (if needed)
 ```
 python -m venv venv
@@ -13,25 +13,24 @@ pip install -r requirements.txt
 ```
 
 
-start virtual env:
+### Start virtual env:
 ```
 .\\venv\\Scripts\\activate
 ```
 
 
-Start frontend:
+### Start frontend:
 1. ```
    python -m http.server 5500
    ```
 
-
-Start backend:
+### Start backend:
 1. ```
    uvicorn backend.main:app --reload
    ```
 - v adresáři projektu, nemusí být v ./backend/
 
-Navigate to:
+### Navigate to:
 ```
 http://localhost:5500/
 ```
