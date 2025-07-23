@@ -1,7 +1,14 @@
+Setup:
+1. Declare virtual env (if needed)
+python -m venv venv
+2. Start virtual env
 .\\venv\\Scripts\\activate
+1. or 3. Instal requirements (to the virtual env if it is activated)
+pip install -r requirements.txt
 
-(start virtuál env)
 
+start virtual env:
+.\\venv\\Scripts\\activate
 
 
 start frontend:
