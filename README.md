@@ -20,14 +20,14 @@ pip install -r requirements.txt
 
 
 ### Start frontend:
-1. ```
-   python -m http.server 5500
-   ```
+```
+python -m http.server 5500
+```
 
 ### Start backend:
-1. ```
-   uvicorn backend.main:app --reload
-   ```
+```
+uvicorn backend.main:app --reload
+```
 - v adresáři projektu, nemusí být v ./backend/
 
 ### Navigate to:
