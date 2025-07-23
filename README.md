@@ -1,3 +1,5 @@
+# TicTacToe game with AIs
+
 ### Setup:
 1. Declare virtual env (if needed)
 ```
