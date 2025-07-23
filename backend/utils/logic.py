@@ -3,7 +3,7 @@ def get_available_moves(board):
 
 def make_move(board, index, symbol):
     new_board = board.copy()
-    new_board[index] = symbol
+    new_board[index - 1] = symbol
     return new_board
 
 def check_win(board):
@@ -18,3 +18,13 @@ def check_win(board):
     if all(cell is not None for cell in board):
         return "remíza"
     return None
+
+def board_to_str(board: list) -> str:
+    def mark(i): return board[i] if board[i] else str(i+1)
+    return (
+        f"{mark(0)} | {mark(1)} | {mark(2)}\n"
+        f"---------\n"
+        f"{mark(3)} | {mark(4)} | {mark(5)}\n"
+        f"---------\n"
+        f"{mark(6)} | {mark(7)} | {mark(8)}"
+    )

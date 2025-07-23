@@ -1,19 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.agents.strategist import get_strategic_move
-from backend.agents.beginner import get_beginner_move
+
 from backend.agents.advisor import get_advisor_messages
-from backend.utils.logic import make_move, check_win, get_available_moves
+from backend.agents.ai_duo import generate_ai_duo_move
+from backend.utils.logic import check_win
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class BoardRequest(BaseModel):
     board: list
@@ -21,39 +15,27 @@ class BoardRequest(BaseModel):
 @app.post("/ai-chat/")
 def ai_chat(request: BoardRequest):
     board = request.board
-
-    # zkontroluj, jestli hra už neskončila
     winner = check_win(board)
     if winner:
-        return {
-            "board": board,
-            "advisor_messages": [{"side": "left", "text": f"Hra skončila, vítěz: {winner}"}],
-            "ai_duo_messages": [{"side": "left", "text": "Hra skončila"}]
-        }
+        return {"board": board,
+                "advisor_messages": [{"side":"left","text":f"Hra skončila: {winner}"}],
+                "ai_duo_messages":[{"side":"left","text":"Hra skončila"}]}
 
-    # začátečník navrhne tah
-    beginner_move = get_beginner_move(board)
+    # **AI Duo** místo dosavadního beginner+strategist
+    new_board, ai_duo_messages = generate_ai_duo_move(board)
 
-    # stratég odpoví a vybere tah
-    strategic_result = get_strategic_move(board)
-    strategic_move = strategic_result["move"]
-    reason = strategic_result["reason"]
+    # po tahu 2AI protivníka
+    winner = check_win(new_board)
+    if winner:
+        return {"board": new_board,
+                "advisor_messages": [{"side":"left","text":f"Hra skončila: {winner}"}],
+                "ai_duo_messages":[{"side":"left","text":"Hra skončila"}]}
 
-    # aplikuj tah
-    board = make_move(board, strategic_move, "O")
-
-    # vytvoř konverzaci AI duo
-    ai_duo_messages = [
-        {"side": "left", "text": f"Začátečník: Co takhle tah na {beginner_move}?" },
-        {"side": "right", "text": f"Stratég: Ne, radši {strategic_move}, protože {reason}." },
-        {"side": "left", "text": f"Začátečník: Aha, chápu!" }
-    ]
-
-    # poradce pro hráče (pro X)
-    advisor_messages = get_advisor_messages(board)
+    # poradce pro hráče (X)
+    advisor_messages = get_advisor_messages(new_board)
 
     return {
-        "board": board,
+        "board": new_board,
         "advisor_messages": advisor_messages,
         "ai_duo_messages": ai_duo_messages
     }
