@@ -3,7 +3,7 @@
 ```
 python -m venv venv
 ```
-3. Start virtual env
+2. Start virtual env
 ```
 .\\venv\\Scripts\\activate
 ```
