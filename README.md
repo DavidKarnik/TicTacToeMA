@@ -11,16 +11,13 @@ start virtual env:
 .\\venv\\Scripts\\activate
 
 
-start frontend:
-
-1. cd ./frontend/
-2. python -m http.server 5500
+Start frontend:
+1. python -m http.server 5500
 
 
-
-start backend:
-
+Start backend:
 1. uvicorn backend.main:app --reload
-
 - v adresáři projektu, nemusí být v ./backend/
 
+Navigate to:
+```http://localhost:5500/```
