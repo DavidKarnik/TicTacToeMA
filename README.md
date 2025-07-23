@@ -20,4 +20,5 @@ Start backend:
 - v adresáři projektu, nemusí být v ./backend/
 
 Navigate to:
+
 ```http://localhost:5500/```
