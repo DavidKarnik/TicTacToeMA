@@ -13,7 +13,7 @@ python -m venv venv
 ```
 pip install -r requirements.txt
 ```
-
+4. Create .env file
 
 ### Start virtual env:
 ```
