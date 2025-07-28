@@ -14,8 +14,9 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 4. Create .env file with OpenAI API key
+```
 OPENAI_API_KEY=sk-1234abcd
-
+```
 
 ### Start virtual env:
 ```
