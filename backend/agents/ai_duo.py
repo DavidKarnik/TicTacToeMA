@@ -13,10 +13,10 @@ def generate_ai_duo_move(board: list) -> tuple[list, list]:
 
     # 1) Začátečník navrhne tah
     b_prompt = f"""
-    Jsi začátečník v piškvorkách (O). Pole je:
+    Jsi začátečník v piškvorkách. Hraješ za symbol O. Tvůj protivník má symbol X. Pole je:
     {board_str}
 
-    Navrhni tah (číslo 1–9) a stručně vysvětli.
+    Navrhni tah (číslo 1–9 dle hracího pole, tam kde nejsou obsazena pole - čísla) a stručně vysvětli.
     Odpověz ve formátu:
     Tah: <číslo>
     Důvod: <text>
@@ -27,7 +27,8 @@ def generate_ai_duo_move(board: list) -> tuple[list, list]:
 
     # 2) Expert zhodnotí a navrhne případnou změnu
     e_prompt = f"""
-    Jsi expert na piškvorky. Pole je:
+    Jsi expert na piškvorky, co má za úkol poradit začátečníkovi jeho další tah (O). Hraješ za symbol O a váš protivník má symbol X. 
+    Pole má rozměr 3x3. Od 1. do 9. pole. Tam, kde je symbol, už nelze umístit tah - to pole je zabrané. Pole je:
     {board_str}
 
     Začátečník navrhl tah {b_move} – {b_reason}. Zhodnoť:
@@ -43,7 +44,7 @@ def generate_ai_duo_move(board: list) -> tuple[list, list]:
     e_reason = e_reply.split("Důvod:")[-1].strip()
     e_feedback = e_reply.split("Hodnocení:")[1].split("Tah:")[0].strip()
 
-    # 3) Začátečník se rozhodne – posluší experta, nebo zůstane
+    # 3) Začátečník se rozhodne – poslechne experta, nebo zůstane
     d_prompt = f"""
     Původní tah: {b_move} – {b_reason}
     Expert řekl: {e_feedback}, navrhl {e_move} – {e_reason}
