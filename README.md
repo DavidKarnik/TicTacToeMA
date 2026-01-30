@@ -28,6 +28,7 @@ OPENAI_API_KEY=sk-1234abcd
 ```
 python -m http.server 5500
 ```
+- v adresáři ./frontend/
 
 ### Start backend:
 ```
