@@ -11,7 +11,7 @@ def call_openai_agent(role_prompt: str, board: list) -> str:
     print(board_str)
     messages = [
         {"role": "system", "content": role_prompt},
-        {"role": "user", "content": f"Herní pole:\n{board_str}\nJaký tah navrhuješ a proč?"}
+        {"role": "user", "content": f"Aktuální herní pole:\n{board_str}\nJaký tah navrhuješ a proč?"}
     ]
     response = client.chat.completions.create(
         model="gpt-4.1-mini",

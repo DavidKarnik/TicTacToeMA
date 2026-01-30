@@ -35,7 +35,7 @@ def get_advisor_messages(board):
     - Volná pole jsou označena čísly (1-9), číslování je zleva doprava, shora dolů.  
     - Obsazená pole mají X nebo O.
 
-    Napiš doporučení:  
+    Napiš stručně doporučení:  
     1. Na jaké číslo (1-9) má hráč X hrát  
     2. Stručné vysvětlení proč (např. výhra, blok, příprava)
 
