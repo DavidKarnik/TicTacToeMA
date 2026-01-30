@@ -1,5 +1,5 @@
 # TicTacToe game with AIs
-
+- On Windows use Powershell
 ### Setup:
 1. Declare virtual env (if needed)
 ```
