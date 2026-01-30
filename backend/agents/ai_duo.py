@@ -4,118 +4,162 @@ import re
 from backend.agents.openai_agent import call_openai_agent
 from backend.utils.logic import get_available_moves, make_move, board_to_str
 
-def extract_number(text: str) -> int:
+def safe_extract(text: str, keyword: str, default: str = "") -> str:
+    """Bezpečně extrahuje text za klíčovým slovem."""
+    parts = text.split(keyword)
+    return parts[1].split("\n")[0].strip() if len(parts) > 1 else default
+
+def extract_number(text: str, available_moves: list = None) -> int:
+    """Extrahuje číslo z textu s fallbackem na první dostupný tah."""
     m = re.search(r"(\d+)", text)
-    return int(m.group(1)) if m else None
+    if m:
+        num = int(m.group(1))
+        if 1 <= num <= 9:
+            return num
+    # Fallback: první dostupný tah (převedený na 1-indexed)
+    if available_moves:
+        return available_moves[0] + 1
+    return 5  # Střed jako poslední záchrana
 
 def generate_ai_duo_move(board: list) -> tuple[list, list]:
     board_str = board_to_str(board)
 
     # 1) Začátečník navrhne tah
-    b_prompt = f"""
-    Jsi začátečník v piškvorkách. Hraješ za symbol O. Tvůj protivník má symbol X.
+    available_str = ", ".join(str(m + 1) for m in get_available_moves(board))
+    b_prompt = f"""# ROLE
+Jsi začátečník v piškvorkách. Hraješ za symbol O, soupeř hraje za X.
 
-    Navrhni tah (číslo 1 až 9 dle hracího pole, tam kde nejsou obsazena pole znaky) a velmi stručně vysvětli. Můžeš hrát všechny pole, kde jsou čísla. Tam kde jsou znaky, už někdo zahrál.
-    Ty hraješ jako symbol (o) a soupeř jako symbol (x). Snaž se vyhrát - mít 3 spojené symboly o vedle sebe. Diagonálně, vertikálně, nebo horizontálně. Pole je 3x3, takže pozice 1 až 9.
-    
-    Čisté pole je:
-    1 | 2 | 3
-    ---------
-    4 | 5 | 6
-    ---------
-    7 | 8 | 9
-    Aktuální rozehrané pole je:
-    {board_str}
+# CÍL
+Vyber tah, kterým se pokusíš vyhrát (3 symboly O v řadě).
 
-    Odpověz ve formátu:
-    Tah: <číslo>
-    Důvod: <text>
-    """
+# PRAVIDLA
+- Hrací pole je 3x3, pozice jsou číslovány 1-9
+- Můžeš hrát POUZE na volná pole (označená čísly)
+- Pole s X nebo O jsou obsazená - NELZE na ně hrát
+- Výhra = 3 stejné symboly v řadě (horizontálně, vertikálně, diagonálně)
+
+# ČÍSLOVÁNÍ POLÍ
+1 | 2 | 3
+---------
+4 | 5 | 6
+---------
+7 | 8 | 9
+
+# AKTUÁLNÍ STAV HRY
+{board_str}
+
+# VOLNÁ POLE
+{available_str}
+
+# POŽADOVANÝ VÝSTUP
+Odpověz PŘESNĚ v tomto formátu (nic jiného):
+Tah: <číslo 1-9>
+Důvod: <krátké vysvětlení>
+
+# PŘÍKLAD ODPOVĚDI
+Tah: 5
+Důvod: Střed je strategicky výhodný.
+"""
+    available = get_available_moves(board)
     b_reply = call_openai_agent(b_prompt, board)
-    b_move = extract_number(b_reply)
-    b_reason = b_reply.split("Důvod:")[-1].strip()
+    b_move = extract_number(b_reply, available)
+    b_reason = safe_extract(b_reply, "Důvod:", "neuveden")
 
     # 2) Expert zhodnotí a navrhne případnou změnu
-    e_prompt = f"""
-    Jsi expert na piškvorky, co má za úkol poradit začátečníkovi jeho další tah (O). Hrajete za symbol O a váš protivník má symbol X. Můžeš hrát všechny pole, kde jsou čísla. Tam kde jsou znaky, už někdo zahrál.
-    Musíš se snažit vyhrát, ne jen blokovat soupeřovu výhru. Pokud můžeš vyhrát, tak proveď tah na výhru a ne na blokování soupeře. Výhra je priorita a hra končí, když jeden z hráčů vyhraje.
-    Pokud ale soupeři chybí udělat jen jeden tah a ty svým aktuálním tahen nemůžeš hru vyhrát a ukončit, tak zablokuj protihráče (x)
-    Pole má rozměr 3x3. Od 1. do 9. pole. Tam, kde je symbol, už nelze umístit tah - to pole je zabrané. Nemůžeš udělat tah na políčko, kde už symbol je (vždy se řiď aktuálním rozehraným polem hry) Pole je:
-    Aktuální rozehrané pole je:
-    {board_str}
+    e_prompt = f"""# ROLE
+Jsi expert na piškvorky. Hodnotíš tah začátečníka a případně navrhuješ lepší.
 
-    Čisté pole (pro orientaci) je:
-    1 | 2 | 3
-    ---------
-    4 | 5 | 6
-    ---------
-    7 | 8 | 9
+# TVŮJ SYMBOL
+O (soupeř má X)
 
-    Tady je příklad výtězné situace pro tebe (o):
-    X | X | O
-    ---------
-    X | O | 6
-    ---------
-    O | 8 | 9
-    - v tomto případě hráč (x) obsadil pozice 1,2,4
-    - hráč (o) obsadil pole 3,5,7
+# STRATEGIE (v pořadí priority)
+1. VÝHRA - pokud můžeš vyhrát tímto tahem, udělej to
+2. BLOKOVÁNÍ - pokud soupeř může vyhrát příštím tahem, zablokuj ho
+3. POZICE - jinak hraj strategicky (střed > rohy > strany)
 
-    Další příklad výhry:
-    O | O | O
-    ---------
-    X | X | 6
-    ---------
-    7 | X | 9
-    Tady je připad další hry, kdy jsi na řadě ty (o) a můžeš vyhrát tahem na pozici 9:
-    O | X | X
-    ---------
-    X | O | 6
-    ---------
-    7 | X | 9
-    
-    Tady je příklad tvé prohry, protivník (x) vyhrál. Zde (x) vyhrál spojením pozic 1,2,3. To nechceš:
-    X | X | X
-    ---------
-    O | O | 6
-    ---------
-    7 | 8 | 9
-    - zde soupeř (x) obsadil pole 1,2,3
-    - ty, hráč jsi (o) obsadil pole 4,5
+# PRAVIDLA
+- Pole 3x3, pozice 1-9
+- Hrát lze POUZE na volná pole (čísla)
+- X a O jsou obsazená pole - NELZE na ně hrát
 
-    Další příklad prohry:
-    X | O | X
-    ---------
-    O | X | 6
-    ---------
-    O | 8 | X
+# ČÍSLOVÁNÍ POLÍ
+1 | 2 | 3
+---------
+4 | 5 | 6
+---------
+7 | 8 | 9
 
-    Začátečník navrhl tah {b_move} - {b_reason}. Velmi stručně zhodnoť:
-    - Je tento tah dobrý?
-    - Pokud ne, navrhni lepší.
-    Odpověz stručně ve formátu:
-    Hodnocení: <text>
-    Tah: <číslo>
-    Důvod: <text>
-    """
+# AKTUÁLNÍ STAV HRY
+{board_str}
+
+# VOLNÁ POLE
+{available_str}
+
+# VÝHERNÍ ŘADY (3 v řadě = výhra)
+Horizontální: 1-2-3, 4-5-6, 7-8-9
+Vertikální: 1-4-7, 2-5-8, 3-6-9
+Diagonální: 1-5-9, 3-5-7
+
+# PŘÍKLAD VÝHRY O
+O | O | 3    → Tah na 3 = výhra (řada 1-2-3)
+---------
+X | X | 6
+---------
+7 | 8 | 9
+
+# PŘÍKLAD NUTNÉHO BLOKOVÁNÍ
+X | X | 3    → Tah na 3 = blokování (jinak X vyhraje)
+---------
+O | O | 6
+---------
+7 | 8 | 9
+
+# NÁVRH ZAČÁTEČNÍKA
+Tah: {b_move}
+Důvod: {b_reason}
+
+# TVŮJ ÚKOL
+Zhodnoť návrh začátečníka. Je tah {b_move} optimální? Pokud ne, navrhni lepší.
+
+# POŽADOVANÝ VÝSTUP
+Odpověz PŘESNĚ v tomto formátu:
+Hodnocení: <je tah dobrý/špatný a proč>
+Tah: <číslo 1-9>
+Důvod: <krátké vysvětlení>
+"""
     e_reply = call_openai_agent(e_prompt, board)
-    e_move = extract_number(e_reply.split("Tah:")[-1])
-    e_reason = e_reply.split("Důvod:")[-1].strip()
-    e_feedback = e_reply.split("Hodnocení:")[1].split("Tah:")[0].strip()
+    e_move = extract_number(e_reply.split("Tah:")[-1], available)
+    e_reason = safe_extract(e_reply, "Důvod:", "neuveden")
+    e_feedback = safe_extract(e_reply, "Hodnocení:", "bez hodnocení")
+    # Ořízni text před "Tah:" pokud existuje
+    if "Tah:" in e_feedback:
+        e_feedback = e_feedback.split("Tah:")[0].strip()
 
     # 3) Začátečník se rozhodne – poslechne experta, nebo ne
-    d_prompt = f"""
-    Původní tah: {b_move} - {b_reason}
-    Expert řekl: {e_feedback}, navrhl {e_move} - {e_reason}
-    Rozhodni, jestli:
-    1. Zůstaneš u {b_move}
-    2. Použiješ {e_move}
-    Odpověz ve formátu:
-    Vybraný tah: <číslo>
-    Důvod: <text>
-    """
+    d_prompt = f"""# ROLE
+Jsi začátečník v piškvorkách. Rozhoduješ se mezi svým původním tahem a radou experta.
+
+# SITUACE
+Tvůj původní návrh: Tah {b_move} - {b_reason}
+Expertova rada: {e_feedback}
+Expert navrhuje: Tah {e_move} - {e_reason}
+
+# TVŮJ ÚKOL
+Vyber jeden z tahů:
+- Tah {b_move} (tvůj původní)
+- Tah {e_move} (expertův návrh)
+
+# VOLNÁ POLE
+{available_str}
+
+# POŽADOVANÝ VÝSTUP
+Odpověz PŘESNĚ v tomto formátu:
+Vybraný tah: <číslo>
+Důvod: <krátké vysvětlení proč jsi vybral tento tah>
+"""
     d_reply = call_openai_agent(d_prompt, board)
-    final_move = extract_number(d_reply)
-    final_reason = d_reply.split("Důvod:")[-1].strip()
+    final_move = extract_number(d_reply, available)
+    final_reason = safe_extract(d_reply, "Důvod:", "neuveden")
 
     # 4) Aplikuj finální tah a vrať nové board + zprávy
     new_board = make_move(board, final_move, "O")

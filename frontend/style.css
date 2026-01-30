@@ -21,7 +21,23 @@ h1 {
 
 #score {
   font-size: 1.2em;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
+}
+
+#new-game-btn {
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background: #0084ff;
+  color: white;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+
+#new-game-btn:hover {
+  background: #006acc;
 }
 
 #game {

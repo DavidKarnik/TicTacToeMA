@@ -18,6 +18,7 @@ def ai_chat(request: BoardRequest):
     winner = check_win(board)
     if winner:
         return {"board": board,
+                "winner": winner,
                 "advisor_messages": [{"side":"left","text":f"Hra skončila: {winner}"}],
                 "ai_duo_messages":[{"side":"left","text":"Hra skončila"}]}
 
@@ -28,6 +29,7 @@ def ai_chat(request: BoardRequest):
     winner = check_win(new_board)
     if winner:
         return {"board": new_board,
+                "winner": winner,
                 "advisor_messages": [{"side":"left","text":f"Hra skončila: {winner}"}],
                 "ai_duo_messages":[{"side":"left","text":"Hra skončila"}]}
 
@@ -36,6 +38,7 @@ def ai_chat(request: BoardRequest):
 
     return {
         "board": new_board,
+        "winner": None,
         "advisor_messages": advisor_messages,
         "ai_duo_messages": ai_duo_messages
     }

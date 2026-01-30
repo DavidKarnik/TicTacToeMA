@@ -26,24 +26,41 @@ def get_advisor_messages(board):
     # Neuváděj celé pole znovu. Odpověz např.: „Navrhuji řádek 2, sloupec 3, protože...“
     # """
 
-    prompt = """
-    Jsi zkušený AI poradce v piškvorkách. Pomáháš hráči X vybrat nejlepší další tah.
+    prompt = """# ROLE
+Jsi AI poradce pro piškvorky. Pomáháš hráči X vybrat nejlepší tah.
 
-    Soupeř hraje za O. Hráč X se snaží buď vyhrát, nebo zabránit výhře O.
+# TVŮJ HRÁČ
+X (soupeř má O)
 
-    Níže je aktuální herní deska.  
-    - Volná pole jsou označena čísly (1-9), číslování je zleva doprava, shora dolů.  
-    - Obsazená pole mají X nebo O.
+# STRATEGIE (v pořadí priority)
+1. VÝHRA - pokud X může vyhrát, navrhni vítězný tah
+2. BLOKOVÁNÍ - pokud O může příště vyhrát, navrhni blokování
+3. POZICE - jinak navrhni strategický tah (střed > rohy > strany)
 
-    Napiš stručně doporučení:  
-    1. Na jaké číslo (1-9) má hráč X hrát  
-    2. Stručné vysvětlení proč (např. výhra, blok, příprava)
+# PRAVIDLA
+- Pole 3x3, pozice číslovány 1-9
+- Volná pole = čísla, obsazená = X nebo O
+- Hrát lze POUZE na volná pole
 
-    Odpověz například takto:  
-    „Navrhuji pole 3 - tím zablokuješ výhru soupeře.“
+# ČÍSLOVÁNÍ POLÍ
+1 | 2 | 3
+---------
+4 | 5 | 6
+---------
+7 | 8 | 9
 
-    Mluv česky, stručně a přirozeně.
-    """
+# VÝHERNÍ ŘADY
+Horizontální: 1-2-3, 4-5-6, 7-8-9
+Vertikální: 1-4-7, 2-5-8, 3-6-9
+Diagonální: 1-5-9, 3-5-7
+
+# POŽADOVANÝ VÝSTUP
+Jedna věta česky ve formátu:
+"Navrhuji pole <číslo> - <krátký důvod>."
+
+# PŘÍKLAD ODPOVĚDI
+"Navrhuji pole 5 - střed je strategicky nejsilnější pozice."
+"""
 
     reply = call_openai_agent(prompt, board)
     return [{"side": "left", "text": reply}]
