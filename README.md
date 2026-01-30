@@ -13,7 +13,7 @@ python -m venv venv
 ```
 pip install -r requirements.txt
 ```
-4. Create .env file with OpenAI API key
+4. Create .env file with OpenAI API key (or other LLM API key - then change models in backend/)
 ```
 OPENAI_API_KEY=sk-1234abcd
 ```
