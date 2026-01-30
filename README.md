@@ -40,3 +40,6 @@ uvicorn backend.main:app --reload
 ```
 http://localhost:5500/
 ```
+
+## Image
+<img width="1895" height="953" alt="Image" src="https://github.com/user-attachments/assets/c91430d6-2d01-4c23-bd42-0f4bee332b6c" />
