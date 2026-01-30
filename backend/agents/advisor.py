@@ -56,10 +56,10 @@ Diagonální: 1-5-9, 3-5-7
 
 # POŽADOVANÝ VÝSTUP
 Jedna věta česky ve formátu:
-"Navrhuji pole <číslo> - <krátký důvod>."
+Navrhuji pole <číslo> - <krátký důvod>.
 
 # PŘÍKLAD ODPOVĚDI
-"Navrhuji pole 5 - střed je strategicky nejsilnější pozice."
+Navrhuji pole 5 - střed je strategicky nejsilnější pozice.
 """
 
     reply = call_openai_agent(prompt, board)
